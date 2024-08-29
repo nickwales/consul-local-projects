@@ -1,19 +1,19 @@
-#### Instructions
+# Instructions
 
-## Start a Consul server
+### Start a Consul server
 
 ```
 consul agent -config-file ./consul.hcl
 ```
 
 
-## Start a Vault server
+### Start a Vault server
 
 ```
 vault server -dev -dev-root-token-id="root"
 ```
 
-# In a new tab configure Vault with a Consul secrets engine
+### In a new tab configure Vault with a Consul secrets engine
 ```
 vault secrets enable consul
 vault write consul/config/access \
@@ -21,7 +21,14 @@ vault write consul/config/access \
     bootstrap=true
 ```
 
-# Create a role with node policies  
+#### Create a global management token role because the existing one is hidden in Vault
+
+```
+vault write consul/roles/consul-server-root-policy \
+    consul_policies="global-management"
+```
+
+#### Create a role with node policies and a policy to use it
 ```
 vault write consul/roles/consul-server-agent-role \
     node_identities="server001:dc1", \
@@ -30,16 +37,11 @@ vault write consul/roles/consul-server-agent-role \
 
 vault policy write consul-server-agent-role ./consul-server-agent-role.hcl
 ```
+  We cannot know cloud instance names in advance, this is a problem.
 
 
-## Create a global management token role because the existing one is hidden in Vault
 
-```
-vault write consul/roles/consul-server-root-policy \
-    consul_policies="global-management"
-```
-
-
+#### Login as a "consul server"
 ```
 $ export VAULT_TOKEN=$(vault token create -policy=consul-server-agent-role -format=json | jq -r '.auth.client_token')
 $ vault read consul/creds/consul-server-agent-role
@@ -70,8 +72,8 @@ Node Identities:
    server003 (Datacenter: dc1)
 ```   
 
-Having multiple identities per token doesn't seem ideal, we can't choose one from the command afaict.
+Having multiple identities per token doesn't seem ideal, we can't choose one of the identities from the command afaict.
+
 It we were to do it this way, somehow as Consul servers come up we'd need to create a new role for each instance.
+
 Servers would somehow have to update vault with a Vault role specifically for them as they come up.
-
-
