@@ -41,7 +41,7 @@ vault policy write consul-server-agent-role ./consul-server-agent-role.hcl
 
 
 
-#### Login as a "consul server"
+#### Login as a "consul server" and create a node identity policy token
 ```
 $ export VAULT_TOKEN=$(vault token create -policy=consul-server-agent-role -format=json | jq -r '.auth.client_token')
 $ vault read consul/creds/consul-server-agent-role
