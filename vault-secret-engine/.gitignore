@@ -1,1 +1,5 @@
-consul/*
+*consul/raft/*
+*consul/serf/*
+*consul/checkpoint-signature
+*consul/node-id
+*consul/server_metadata.json
